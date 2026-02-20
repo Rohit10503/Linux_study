@@ -1,0 +1,93 @@
+SFTP SETUP & DIRECTORY RESTRICTION GUIDE (CHROOT JAIL)
+=======================================================
+
+OBJECTIVE:
+----------
+Set up an SFTP user who:
+- Can connect via SFTP
+- Cannot use SSH shell
+- Cannot access directories outside their assigned folder
+
+
+1. INSTALL SSH SERVER (if not installed)
+----------------------------------------
+
+Ubuntu/Debian:
+  sudo apt update
+  sudo apt install openssh-server
+
+CentOS/RHEL:
+  sudo yum install openssh-server
+
+
+2. CREATE SFTP USER
+-------------------
+
+  sudo adduser sftpuser
+  sudo passwd sftpuser
+
+
+3. CREATE AND SECURE DIRECTORY STRUCTURE
+----------------------------------------
+
+  sudo mkdir -p /home/sftpuser/uploads
+
+  # Set ownership and permissions
+  sudo chown root:root /home/sftpuser
+  sudo chmod 755 /home/sftpuser
+
+  sudo chown sftpuser:sftpuser /home/sftpuser/uploads
+
+
+4. CONFIGURE SSHD FOR CHROOT JAIL
+---------------------------------
+
+Edit SSH config file:
+  sudo nano /etc/ssh/sshd_config
+
+Add to the end:
+
+  Match User sftpuser
+    ChrootDirectory /home/sftpuser
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+
+
+5. RESTART SSH SERVICE
+----------------------
+
+  sudo systemctl restart sshd
+
+
+6. TEST SFTP ACCESS
+-------------------
+
+From client machine:
+  sftp sftpuser@your_server_ip
+
+Expected behavior:
+- Starts in /
+- Can access /uploads
+- Cannot use `cd ..` or see other system folders
+
+
+SFTP COMMANDS OVERVIEW
+----------------------
+
+  put file.txt       # Upload a file
+  get file.txt       # Download a file
+  ls                 # List files
+  cd foldername      # Change directory
+  pwd                # Show current directory
+  exit               # Exit SFTP
+
+
+OPTIONAL ENHANCEMENTS
+---------------------
+
+- Use SSH key-based authentication
+- Create multiple jailed users with separate folders
+- Automate file transfers (bash, Python, cron)
+- Use GUI clients like FileZilla or WinSCP
+

@@ -1,0 +1,86 @@
+#!/bin/bash
+
+SERVER_FILE="/home/monitor-user/utilization/servers.txt"
+SSH_USER="monitor-user"
+
+CPU_THRESHOLD=80
+DISK_THRESHOLD=85
+
+MAIL_TO="linux.support@simplelogic.in mobility.support@simplelogic.in"
+MAIL_FROM="noreply@salespot360.com"
+SUBJECT="SL ALERT: Server Threshold Breached"
+
+TMP_MAIL="/tmp/alert_$$.txt"
+ALERT=0
+
+echo "Server Threshold Alert Report" > "$TMP_MAIL"
+echo "Generated on: $(date)" >> "$TMP_MAIL"
+echo "------------------------------------" >> "$TMP_MAIL"
+
+while read -r SERVER PORT
+do
+    echo "Checking $SERVER (port $PORT)..."
+
+    OUTPUT=$(ssh -o ConnectTimeout=5 -p "$PORT" "$SSH_USER@$SERVER" bash <<'EOF'
+
+# CPU USER (%) only
+CPU=$(mpstat 1 1 | awk '/Average:/ && $2=="all" {print int($3)}')
+
+# Disk usage (exclude tmpfs/devtmpfs)
+df -P -x tmpfs -x devtmpfs | awk 'NR>1 {gsub("%","",$5); print $6 ":" $5}'
+
+echo "CPU=$CPU"
+EOF
+)
+
+    # ---- CPU CHECK ----
+    CPU_USAGE=$(echo "$OUTPUT" | grep CPU= | cut -d= -f2)
+
+    if [[ "$CPU_USAGE" =~ ^[0-9]+$ ]] && [ "$CPU_USAGE" -ge "$CPU_THRESHOLD" ]; then
+        ALERT=1
+        echo "⚠ CPU threshold breached on $SERVER : ${CPU_USAGE}%" >> "$TMP_MAIL"
+    fi
+
+    # ---- DISK CHECK (FIXED – NO SUBSHELL) ----
+    while read -r LINE
+    do
+        MOUNT=${LINE%%:*}
+        USAGE=${LINE##*:}
+
+        if [ "$USAGE" -ge "$DISK_THRESHOLD" ]; then
+            ALERT=1
+            echo "⚠ Disk threshold breached on $SERVER ($MOUNT) : ${USAGE}%" >> "$TMP_MAIL"
+        fi
+    done <<< "$(echo "$OUTPUT" | grep "/")"
+
+done < "$SERVER_FILE"
+
+# ---- SEND MAIL ----
+#if [ "$ALERT" -eq 1 ]; then
+#    mail -s "$SUBJECT" -r "$MAIL_FROM" $MAIL_TO < "$TMP_MAIL"
+#fi
+
+
+if [ "$ALERT" -eq 1 ]; then
+
+        {
+    echo ""
+    echo "------------------------------------"
+    echo "Action Required:"
+    echo "Please investigate the reported server(s) to prevent potential service disruption."
+    echo ""
+
+    } >> "$TMP_MAIL"
+
+
+    mail -s "$SUBJECT" -r "$MAIL_FROM" $MAIL_TO < "$TMP_MAIL"
+fi
+
+
+
+
+
+
+rm -f "$TMP_MAIL"
+
+

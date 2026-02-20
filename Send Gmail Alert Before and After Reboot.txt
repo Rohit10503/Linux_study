@@ -1,0 +1,120 @@
+Oracle Linux: 
+=======================================================
+
+This setup sends Gmail alerts:
+- ✅ Before Reboot (via `reboot` or `init 6`)
+- ✅ After Reboot (via systemd service)
+
+-------------------------------------------------------
+1. Configure Gmail SMTP (/etc/mail.rc)
+-------------------------------------------------------
+
+sudo tee /etc/mail.rc > /dev/null << 'EOF'
+set smtp=smtps://smtp.gmail.com:465
+set smtp-auth=login
+set smtp-auth-user=yourname@gmail.com
+set smtp-auth-password=your-app-password
+set from="yourname@gmail.com"
+set ssl-verify=ignore
+EOF
+
+Note:
+- Replace 'yourname@gmail.com' with your Gmail address.
+- Use Gmail App Password, not your real password.
+  https://myaccount.google.com/apppasswords
+
+-------------------------------------------------------
+2. Install Correct mailx Version
+-------------------------------------------------------
+
+sudo dnf remove mailx -y
+sudo dnf install heirloom-mailx -y
+# or (if unavailable):
+sudo dnf install s-nail -y
+
+Test:
+echo "Test Mail" | mail -s "Test Subject" yourname@gmail.com
+
+-------------------------------------------------------
+3. Send Email Before Reboot
+-------------------------------------------------------
+
+Backup original reboot/init:
+=>sudo mv /sbin/reboot /sbin/reboot.original
+=>sudo mv /sbin/init /sbin/init.original
+
+Create new /sbin/reboot:
+=>	sudo tee /sbin/reboot > /dev/null << 'EOF'
+	#!/bin/bash
+	echo "⚠️ Server $(hostname) is REBOOTING at $(date)" | mail -s "Reboot Alert: $(hostname)" yourname@gmail.com
+	/sbin/reboot.original "$@"
+	EOF
+
+Make it executable:
+=>sudo chmod +x /sbin/reboot
+
+Link init:
+=>sudo ln -s /sbin/reboot /sbin/init
+
+-------------------------------------------------------
+4. Send Email After Reboot (with uptime info)
+-------------------------------------------------------
+
+Create script: /usr/local/bin/startup-alert.sh
+
+=>	sudo tee /usr/local/bin/startup-alert.sh > /dev/null << 'EOF'
+	#!/bin/bash
+	sleep 20
+	HOSTNAME=$(hostname)
+	DATE=$(date)
+	UPTIME=$(uptime -p)
+	echo -e "✅ Server: $HOSTNAME\n📅 Time: $DATE\n⏱️ Uptime: $UPTIME" | mail -s "Startup Alert: $HOSTNAME" yourname@gmail.com
+	EOF
+
+Make it executable:
+=>sudo chmod +x /usr/local/bin/startup-alert.sh
+
+-------------------------------------------------------
+5. Create systemd Service
+-------------------------------------------------------
+
+sudo tee /etc/systemd/system/startup-alert.service > /dev/null << 'EOF'
+[Unit]
+Description=Startup Email Alert
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/startup-alert.sh
+
+[Install]
+WantedBy=default.target
+EOF
+
+Enable services:
+sudo systemctl daemon-reload
+sudo systemctl enable NetworkManager-wait-online.service
+sudo systemctl enable startup-alert.service
+
+-------------------------------------------------------
+6. Example Emails
+-------------------------------------------------------
+
+Startup Email:
+✅ Server: myserver01
+📅 Time: Sun Jul 20 10:02:15 IST 2025
+⏱️ Uptime: up 1 minute
+
+Reboot Email:
+⚠️ Server myserver01 is REBOOTING at Sun Jul 20 10:00:00 IST 2025
+
+-------------------------------------------------------
+7. Useful Commands
+-------------------------------------------------------
+
+Check if service worked:
+journalctl -u startup-alert.service -b
+
+Test script manually:
+bash /usr/local/bin/startup-alert.sh

@@ -1,0 +1,14 @@
+############################firewall##########################################
+https://www.tecmint.com/firewalld-rules-for-centos-7/
+
+=>systemctl status httpd
+=>systemctl start httpd
+=>systemctl enable httpd
+
+=>firewall-cmd --permanent --zone=public --add-port=80/tcp
+
+=>firewall-cmd --permanent --zone=public --add-service=http
+
+=>firewall-cmd --zone=public --list-all   #shows services
+
+=>firewall-cmd --reload

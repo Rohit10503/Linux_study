@@ -1,0 +1,25 @@
+###############################Static ip######################
+
+Step1: Make changes in /etc/sysconfig/network-script/ens160
+
+
+using nmcli
+
+Check connection name
+=>nmcli con show
+
+
+=>nmcli con mod enp0s3 ipv4.addresses 192.168.1.100/24		
+=>nmcli con mod enp0s3 ipv4.gateway 192.168.1.1
+=>nmcli con mod enp0s3 ipv4.dns 8.8.8.8
+=>nmcli con mod enp0s3 ipv4.method manual
+
+
+=>nmcli con down enp0s3 && nmcli con up enp0s3
+
+
+
+
+
+
+

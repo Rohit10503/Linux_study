@@ -1,0 +1,20 @@
+####################i have deleted all initramfs files in /boot in oracle linux and restarted the server#################
+
+step 1: at choosing kernel press `ESc` or `f2`
+step 2: press `c` to enter in  command prompt
+step 3: write `exit`
+
+step 4: `trobuleshooting`> `rescue a oracle linux system` > type `1`
+
+step 5: chroot /mnt/sysimage
+step 6:  Installed Kernel Check Karein
+=>ls /lib/modules/
+it shows the kernel version like 5.4.17-2136.300.7.el8uek.x86_64
+
+step 7:  Initramfs File Dobara Banayein
+=>dracut -f /boot/initramfs-5.4.17-2136.300.7.el8uek.x86_64.img 5.4.17-2136.300.7.el8uek.x86_64
+verssion same rahna chaiye kernel wale se
+
+
+step 8: =>exit
+	=>reboot

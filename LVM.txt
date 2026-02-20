@@ -1,0 +1,65 @@
+echo "- - -" > /sys/class/iscsi_host/host0/scan			//for scan new disk
+---------------------------------------------------------------------
+
+
+Create a big file:
+=>fallocate -l 20G /[filename]
+
+
+parted /dev/sdb
+mklaegpt
+q
+
+
+
+create  a disk of size 4GB  (sdb)
+=>lsblk 
+
+seen in 
+=>fdisk -l
+
+go inside sdb
+=>fdisk /dev/sdb
+
+open new view  automatically
+=>m    		//to get help commands
+
+=>n			//to get new partition
+
+=>t 		//to change partion type
+in hex code set write
+=>8e 		//for Linux/LVM
+
+=>w 		//write and exit
+
+
+#Partioned created in sdb as sdb1 : you can see using lsblk
+
+create PV(physical volume):
+=>pvcreate /dev/sdb1
+
+can display:
+=>pvdisplay
+
+#Now have to extend VG
+see the VG
+=>vgs 		=>vgdisplay		//Vg display name as ol
+
+now exend vg
+=>vgextend -v ol /dev/sdb1
+
+
+#now extend LV(Logical volumes)
+see lvs
+=>lvs     =>lvdisplay		
+
+extend it now:
+=>lvextend -l+100%FREE /dev/ol/root
+
+#as type of / is xfs
+=>xfs_grows /
+
+
+see in 
+=>df -Th
+Thats all

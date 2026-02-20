@@ -1,0 +1,51 @@
+####################LOCAl REPO CONFIGURATION###########################
+https://www.tecmint.com/create-rhel-8-local-repository/
+
+
+=>installing packages from server or rom Local system
+=>main files 
+-------------------------------------------------------------
+Mount the iso first
+$ sudo mkdir -p /mnt/disc
+$ sudo mount -o loop rhel-8.6-x86_64-dvd.iso /mnt/disc
+
+
+or  
+
+=>mkdir -p /mnt/disc
+=>mount /dev/sr0 /mnt/disc		#direct give mount point contain iso
+
+=> cp /mnt/disc/media.repo /etc/yum.repos.d/rhel8.repo
+
+=>chmod 644 /etc/yum.repos.d/rhel8.repo
+
+=>vi /etc/yum.repos.d/rhel8.repo
+---------------------------------------
+[dvd-BaseOS]
+name=DVD for RHEL - BaseOS
+baseurl=file:///mnt/disc/BaseOS
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+[dvd-AppStream]
+name=DVD for RHEL - AppStream
+baseurl=file:///mnt/disc/AppStream
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+---------------------------------------
+=>yum clean all
+=> yum repolist enabled
+
+
+
+
+----------------------------------------------------
+create files
+=> vi /etc/yum.repos.d/server.repo
+----------------------------------------------------
+
+----------------------------------------------------
+for checking the update files
+rpm -qa |grep firewalld

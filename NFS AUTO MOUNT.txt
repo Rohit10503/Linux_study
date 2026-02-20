@@ -1,0 +1,67 @@
+Autofs Configuration for NFS Share `/appdata` on `/mnt/appdata`
+
+1. Install Autofs
+------------------
+sudo yum install autofs -y
+
+2. Enable and Start Autofs
+---------------------------
+sudo systemctl enable autofs
+sudo systemctl start autofs
+sudo systemctl status autofs
+
+3. Configure `	`
+--------------------------------
+Edit the master map file:
+sudo vi /etc/auto.master
+
+Add this line:
+/mnt /etc/auto.mnt   --timeout=180
+
+4. Create `/etc/auto.mnt`
+--------------------------
+Create and edit the automount map:
+sudo vi /etc/auto.mnt
+
+Add the following line:
+appdata  -fstype=nfs,rw,soft,intr <NFS_SERVER_IP>:/appdata 		#appdata start wala mnt ke andar folder ka naam hai  
+
+Note:
+- Replace <NFS_SERVER_IP> with the actual IP address of the NFS server.
+
+5. Create Mount Point
+----------------------
+sudo mkdir -p /mnt/appdata
+
+6. Restart Autofs
+------------------
+sudo systemctl restart autofs
+
+7. Test the Automount
+----------------------
+Access the mount point to trigger automount:
+cd /mnt/appdata
+
+Verify the mount:
+mount | grep /mnt/appdata
+
+8. Optional: Add Timeout for Idle Unmount
+------------------------------------------
+Edit `/etc/auto.mnt` to include timeout:
+appdata  -fstype=nfs,rw,hard,intr,timeout=300 <NFS_SERVER_IP>:/appdata
+
+This unmounts the share after 5 minutes (300 seconds) of inactivity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+

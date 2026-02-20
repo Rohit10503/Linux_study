@@ -1,0 +1,39 @@
+# Time Synchronization Setup on Oracle Linux Client Using Chrony
+
+1. Install Chrony (if not installed):
+   sudo dnf install chrony -y
+
+2. Edit the Chrony configuration file:
+   sudo nano /etc/chrony.conf
+   (Or use vi if you prefer)
+
+3. In the config file, comment out existing NTP servers and add your server's IP or hostname:
+   # pool 2.centos.pool.ntp.org iburst
+   server <your_server_ip_or_hostname> iburst
+
+   Example:
+   server 192.168.1.10 iburst
+
+4. On the Server, allow the client to connect:
+   Edit /etc/chrony.conf on the server and add:
+   allow 192.168.1.0/24
+
+5. Restart and enable chronyd service on both client and server:
+   sudo systemctl restart chronyd
+   sudo systemctl enable chronyd
+
+6. Force client to sync immediately (optional):
+   sudo chronyc makestep
+
+7. Verify synchronization status:
+   chronyc tracking
+   chronyc sources
+
+8. Make sure firewall allows NTP port (123 UDP) on both client and server:
+   sudo firewall-cmd --add-port=123/udp --permanent
+   sudo firewall-cmd --reload
+
+9. (Optional) Set the timezone correctly on the client:
+   timedatectl set-timezone Your/Timezone
+   Example:
+   timedatectl set-timezone Asia/Kolkata

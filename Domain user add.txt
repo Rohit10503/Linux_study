@@ -1,0 +1,154 @@
+https://mattglass-it.com/ubuntu-domain-join/   For adding home directory
+
+
+##############################################
+# Linux Domain Join & User Management Guide  #
+# For Oracle Linux with Active Directory     #
+##############################################
+
+Step 1: Install Required Packages
+---------------------------------
+sudo dnf install -y realmd sssd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation
+
+#for ubuntu
+sudo apt install -y realmd sssd sssd-tools libnss-sss libpam-sss adcli samba-common samba-common-bin oddjob oddjob-mkhomedir packagekit
+
+
+Step 2: Set DNS to AD Domain Controller
+---------------------------------------
+# Edit /etc/resolv.conf
+sudo nano /etc/resolv.conf
+nameserver <AD_Domain_Controller_IP>
+
+# Or use nmcli if using NetworkManager:
+nmcli con mod <connection_name> ipv4.dns "<AD_DC_IP>"
+nmcli con up <connection_name>
+
+Step 3: Discover the Domain
+---------------------------
+realm discover yourdomain.com
+
+Optional: Set Hostname Before Join
+----------------------------------
+sudo hostnamectl set-hostname yourhostname.yourdomain.com
+
+
+Step 4: Join the Domain
+-----------------------
+sudo realm join --user=Administrator yourdomain.com
+
+# You’ll be prompted for the domain password.
+# Replace 'Administrator' with domain user with join privileges
+
+
+Step 5: Verify Join
+-------------------
+realm list
+#You should see domain configuration output confirming the system is joined.
+
+
+Step 6: Allow Domain Users Access
+---------------------------------
+# Allow all users
+sudo realm permit --all
+
+# OR allow specific group (example: Domain Users)
+sudo realm permit -g "Domain Users"
+
+# OR allow specific user
+sudo realm permit user@yourdomain.com
+
+Step 7: Test Login
+------------------
+su - user@yourdomain.com
+
+# Home directory will be created if oddjob-mkhomedir is installed
+
+
+
+Optional: Leave the Domain
+--------------------------
+sudo realm leave --user=Administrator yourdomain.com
+
+##############################################
+# Notes:
+# - Ensure system time is in sync (use NTP)
+# - Use correct DNS (AD DC IP) for resolution
+# - Test with: kinit user@YOURDOMAIN.COM
+##############################################
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------
+############Giving on Read access###########################
+
+1️. Verify the Linux server is domain joined
+=> realm list
+
+You should see output like:
+
+Cipla.com
+  type: kerberos
+  realm-name: CIPLA.COM
+  domain-name: cipla.com
+  configured: kerberos-member
+
+
+2. Verify the AD user exists
+=> id opm.admin@cipla.com
+
+If the output shows UID/GID, the server can see the AD user.
+
+
+
+3️. Grant least privilege / read-only access
+
+The safest way is do NOT add the user to sudoers. Instead, grant access only to required files/folders.
+
+
+
+4. Option B: Allow login but no sudo
+By default, domain users cannot use sudo unless added to /etc/sudoers or a privileged group.
+So just permit login:
+
+=> sudo realm permit opm.admin@cipla.com
+Do NOT add them to sudo or wheel group → ensures least privilege.
+
+
+5. Test the user
+=> su - opm.admin@cipla.com
+
+Check they can log in.
+
+Try running a command needing root → should fail.
+
+------------------------------------------------------------------------------------------------------------
+
+
+ Create home directory on first login
+
+Install & enable home-directory creation:
+
+=> sudo apt install -y oddjob oddjob-mkhomedir
+=> sudo systemctl enable --now oddjobd   # start the helper service
+# enable pam mkhomedir helper (Ubuntu helper)
+=>  sudo pam-auth-update --enable mkhomedir
+
+
+Or manually add to /etc/pam.d/common-session:
+
+session optional pam_mkhomedir.so skel=/etc/skel umask=0077
+
+
+This ensures /home/<user> is created at first logon. 
+(You can also tweak override_homedir / fallback_homedir in /etc/sssd/sssd.conf if you want different home path behavior.) 
+ 
+
+
+

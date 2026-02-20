@@ -1,0 +1,18 @@
+# Safety Alias and Confirmation for init 6
+
+# Alias to override init command
+alias init='confirm_init'
+
+# Function to prompt before running init 6
+confirm_init() {
+    if [[ "$1" == "6" ]]; then
+        read -p "⚠️ Are you sure you want to reboot the system (init 6)? [y/N]: " answer
+        if [[ "$answer" == [Yy]* ]]; then
+            command /sbin/init 6
+        else
+            echo "Reboot cancelled."
+        fi
+    else
+        command /sbin/init "$@"
+    fi
+}

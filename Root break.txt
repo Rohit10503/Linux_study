@@ -1,0 +1,28 @@
+######################Root break####################################
+
+https://www.tecmint.com/reset-forgotten-root-password-in-rhel-centos-and-fedora/
+
+
+step1:First, restart your system, and at the boot grub menu choose the kernel (mostly the first option) 
+you wish to boot into and press the key 'e' on your keyboard.
+
+step2:
+On the next screen, you will see the following kernel boot parameters, 
+here find the line that starts with kernel= and add the parameter 
+rd.break at the end as shown and press Ctrl + x keys.
+
+
+
+step 3: 
+Press enter
+=> mount | grep sysroot
+
+=> mount -o remount,rw /sysroot/
+=> mount | grep sysroot
+=> chroot /sysroot
+=>passwd			[Set password ]
+
+step4: 
+=>touch /.autorelabel
+=>exit
+=>logout

@@ -1,0 +1,62 @@
+
+# Restricted User Creation on Oracle Linux
+
+This guide outlines how to create a restricted user that can only run a few selected commands (top, sar, df -h, free) on Oracle Linux.
+
+## Step 1: Create the User
+```bash
+sudo useradd monitoruser
+sudo passwd monitoruser
+```
+
+## Step 2: Set up a Restricted Shell (rbash)
+```bash
+sudo ln -s /bin/bash /bin/rbash
+sudo usermod -s /bin/rbash monitoruser
+```
+
+## Step 3: Create a Directory for Allowed Commands
+```bash
+sudo mkdir -p /home/monitoruser/bin
+sudo ln -s /usr/bin/top /home/monitoruser/bin/top
+sudo ln -s /usr/bin/sar /home/monitoruser/bin/sar
+sudo ln -s /usr/bin/df /home/monitoruser/bin/df
+sudo ln -s /usr/bin/free /home/monitoruser/bin/free
+sudo chown -R monitoruser:monitoruser /home/monitoruser/bin
+```
+-------------------------------------------------------------------------------------
+## Step 4: Set Restricted PATH in .bash_profile
+Edit `/home/monitoruser/.bash_profile`:
+
+PATH=$HOME/bin
+export PATH
+
+
+Alternatively, run:
+```bash
+echo 'PATH=$HOME/bin' | sudo tee /home/monitoruser/.bash_profile
+echo 'export PATH' | sudo tee -a /home/monitoruser/.bash_profile
+```
+
+YE DONO SAME HI HAI 
+--------------------------------------------------------------------------------------
+## Step 5: Lock Down Config File Permissions
+```bash
+sudo chown root:root /home/monitoruser/.bash_profile
+sudo chmod 755 /home/monitoruser/.bash_profile
+```
+
+## Step 6: Test the Setup
+Switch to the user and try running the allowed commands:
+```bash
+su - monitoruser
+top
+df -h
+free
+sar -u 1 3
+```
+
+Unlisted commands like `ls`, `cd`, `nano`, etc., should fail.
+
+---
+

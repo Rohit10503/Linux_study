@@ -1,0 +1,122 @@
+Linux Hardening Guide (Essential Steps)
+
+1. Keep System Updated
+-----------------------
+- RHEL/Oracle: sudo dnf update
+- Ubuntu/Debian: sudo apt update && sudo apt upgrade
+
+2. Disable Unused Services
+---------------------------
+- List services: sudo systemctl list-units --type=service
+- Disable: sudo systemctl disable --now <service>
+
+3. Enable and Configure Firewall
+---------------------------------
+- Oracle/RHEL: firewalld
+  sudo systemctl enable --now firewalld
+  sudo firewall-cmd --permanent --add-service=ssh
+  sudo firewall-cmd --reload
+
+- Ubuntu: ufw
+  sudo ufw enable
+  sudo ufw allow ssh
+
+4. Secure SSH
+--------------
+Edit /etc/ssh/sshd_config:
+  PermitRootLogin no
+  PasswordAuthentication no
+  Protocol 2
+  X11Forwarding no
+  AllowUsers youruser
+Then restart: sudo systemctl restart sshd
+
+5. Enforce Strong Passwords
+----------------------------
+Install pwquality:
+  Oracle: sudo dnf install libpwquality
+  Ubuntu: sudo apt install libpam-pwquality
+
+Edit /etc/security/pwquality.conf:
+  minlen = 12
+  dcredit = -1
+  ucredit = -1
+  ocredit = -1
+  lcredit = -1
+
+6. Enable SELinux or AppArmor
+------------------------------
+Oracle/RHEL:
+  Check: sestatus
+  Config: /etc/selinux/config → SELINUX=enforcing
+
+Ubuntu:
+  sudo aa-status
+
+7. Enable Auditing
+-------------------
+Oracle: sudo dnf install audit -y
+Ubuntu: pre-installed
+
+  sudo systemctl enable --now auditd
+  ausearch -x /usr/bin/passwd
+
+8. Enable Automatic Updates (Optional)
+---------------------------------------
+Ubuntu: 
+  sudo apt install unattended-upgrades
+  sudo dpkg-reconfigure unattended-upgrades
+
+Oracle:
+  sudo dnf install dnf-automatic
+  sudo systemctl enable --now dnf-automatic.timer
+
+9. Secure BIOS/UEFI
+--------------------
+- Set BIOS password
+- Disable USB boot if not needed
+- Disable unused hardware
+
+10. Install Intrusion Detection (AIDE)
+---------------------------------------
+  sudo dnf install aide OR sudo apt install aide
+  sudo aide --init
+  sudo cp /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+  sudo aide --check
+
+11. Restrict su/sudo Access
+----------------------------
+Edit /etc/pam.d/su → Uncomment:
+  auth required pam_wheel.so
+
+Add users to wheel group:
+  sudo usermod -aG wheel youruser
+
+12. Secure File Permissions
+----------------------------
+  chmod 700 ~/.ssh
+  chmod 600 ~/.ssh/authorized_keys
+  find / -xdev -type f -perm -0002
+
+13. Use Secure Mount Options
+-----------------------------
+Edit /etc/fstab:
+  /tmp   tmpfs  defaults,noexec,nosuid,nodev  0 0
+  /home  ext4   defaults,nodev                0 2
+
+14. Use Fail2Ban (SSH Protection)
+----------------------------------
+  sudo dnf install fail2ban
+  sudo systemctl enable --now fail2ban
+
+15. Scan for Rootkits
+----------------------
+  sudo apt install rkhunter
+  sudo rkhunter --update
+  sudo rkhunter --check
+
+16. Enable Logging & Monitoring
+--------------------------------
+  Install logwatch, goaccess, or similar.
+
+-- End of Hardening Checklist --

@@ -1,0 +1,3 @@
+####################################  NFS ##############################
+https://www.tecmint.com/install-nfs-server-on-centos-8/
+

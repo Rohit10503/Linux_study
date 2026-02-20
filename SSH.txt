@@ -1,0 +1,20 @@
+########################SSH###############################
+important directory=>  .ssh
+---------------------------------------
+first generate key at client(jisse connect karna hai)=> `ssh-keygen`
+
+=>`ssh-copy-id root@192.168.5.132`	#agar ye kiya tooh samne waale mein authorized key
+automatic ban jayegi
+--------------------
+agar samne wale ka login apne mein karna hai toh samne walle ke authorirized_keys file 
+mein mera public key hona chaiye
+
+use puttygen
+
+without using copy id karna hai toh yeh karo
+=>`ssh root@[samne wale ka ip]`
+--------------------
+
+
+
+

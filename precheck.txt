@@ -1,0 +1,18 @@
+hostnamectl
+df -Th
+lsblk
+cat /etc/fstab
+cat /etc/passwd
+ll /boot/
+uptime
+lscpu
+free -h
+uname -a
+
+
+
+mount -av
+ifconfig
+route -n
+lsmod
+yum check-update

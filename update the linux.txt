@@ -1,0 +1,20 @@
+#DO PRECHECK BEFORE DOING ANY THING ##
+
+Since you're on Oracle Linux 8.5 
+and want to upgrade to 8.8 only (not all the way to the latest 8.x), 
+you need to restrict the system update to that specific minor version.
+-----------------------------------------------------------------------------
+
+dnf config-manager --set-releasever=8.8
+dnf upgrade --releasever=8.8
+
+the above command is used for the controlled update only
+
+
+------------------------------------------------------------------------------
+ dnf update --security		#update only security
+ rpm -qa			#list all installed  package   
+ yum update -y			#is used for the update to latest 7.3 to 7.(latest)
+
+reboot
+

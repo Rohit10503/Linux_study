@@ -1,0 +1,33 @@
+Ask to take snapshot
+
+Ask for Service stop of db or application
+
+check space in /boot /tmp /var  in df -Th
+
+ps -ef |grep pmon
+uptime
+hostnamectl
+uname -a
+lsb_release -a
+df -Th
+cat /etc/fstab
+cat /etc/netplan/[.yml_file]
+
+mount -av
+dpkg -l
+ll /boot
+
+pro status
+ifconfig
+
+
+
+apt update
+apt list --upgradable
+apt upgrade
+
+grub ka password hai kya pucho
+
+hone ke baad pucho ki reboot le sakta hai kya
+
+reboot hone ke baad bolo services start karne

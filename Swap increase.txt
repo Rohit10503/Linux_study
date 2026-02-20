@@ -1,0 +1,48 @@
+How to Increase Swap Space on Oracle Linux (VMware Workstation)
+================================================================
+
+1. Check Current Swap Space
+----------------------------
+Run the following commands to check current swap usage:
+    free -h
+    swapon --show
+
+2. Create a Swap File (e.g., 2GB)
+---------------------------------
+Preferred method:
+    sudo fallocate -l 2G /swapfile
+
+If fallocate doesn't work:
+    sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+
+3. Set Correct Permissions
+---------------------------
+    sudo chmod 600 /swapfile
+
+4. Format the Swap File
+------------------------
+    sudo mkswap /swapfile
+
+5. Enable the Swap File
+------------------------
+    sudo swapon /swapfile
+
+6. Make Swap Permanent
+-----------------------
+To ensure the swap file is available after reboot:
+
+    sudo nano /etc/fstab
+
+Add the following line at the end of the file:
+    /swapfile swap swap defaults 0 0
+
+7. Verify the Swap Space
+-------------------------
+    swapon --show
+    free -h
+
+Notes:
+------
+- You can adjust the size (e.g., 4G, 512M) as needed.
+- Only one swap file is typically needed, but multiple can be used if required.
+- This method works on Oracle Linux 7, 8, and 9.
